@@ -296,7 +296,7 @@ bool BlueMagicCameraConnection::connectToServer(BLEAddress address)
 {
   _client = _device.createClient();
   setState(CAMERA_CONNECTING);
-  _client->connect(address);
+  _client->connect(90:fd:9f:cf:11:1a);
 
   BLERemoteService *pRemoteService = _client->getService(BmdCameraService);
   if (pRemoteService == nullptr)

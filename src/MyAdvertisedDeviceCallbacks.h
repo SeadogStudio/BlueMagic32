@@ -2,7 +2,7 @@
 #define MYADVERTISEDEVICE_H
 
 #include <BLEAdvertisedDevice.h>
-#include <BLEAdvertisedDeviceCallbacks.h>
+// #include <BLEAdvertisedDeviceCallbacks.h>
 #include "BlueMagicCameraConnection.h" // Needed because it takes a pointer to the BlueMagicCameraConnection class
 
 class MyAdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {

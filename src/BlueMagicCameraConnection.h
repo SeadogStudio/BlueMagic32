@@ -1,65 +1,53 @@
+// BlueMagicCameraConnection.h
+
 #ifndef BlueMagicCameraConnection_h
 #define BlueMagicCameraConnection_h
 
 #include "Arduino.h"
-#include <BLEDevice.h>
-#include <Preferences.h>
-#include "BlueMagicState.h"
-#include "BlueMagicCameraController.h"
+#include "BLEDevice.h"
+#include "BLEUtils.h"
+#include "BLEScan.h"
+#include "BLEAdvertisedDevice.h"
 #include "MyAdvertisedDeviceCallbacks.h"
-#include "MySecurity.h"
-
-enum CONNECTION_STATE {
-    CAMERA_CONNECTED = 1,
-    CAMERA_DISCONNECTED = 2,
-    CAMERA_CONNECTING = 3
-};
+#include "BLEClient.h"
+#include "BLECharacteristic.h"
+#include "BLEDescriptor.h"
 
 class BlueMagicCameraConnection {
 public:
-    BlueMagicCameraConnection();
-    ~BlueMagicCameraConnection();
-
-    void begin(const String& name);
-    void begin(const String& name, Preferences& pref);
-
-    bool scan(bool active, int duration);
-
-    BlueMagicCameraController* connect();
-    BlueMagicCameraController* connect(uint8_t index);
-
-    void disconnect();
-    void clearPairing();
-
-    bool available() const;
-    int connected() const;
-    bool getAuthentication() const;
-    BLEAddress getCameraAddress() const;
+  BlueMagicCameraConnection();
+  void begin(const char* deviceName, void (*cameraConnectedCallback)(), void (*cameraDisconnectedCallback)(), void (*shutterPressedCallback)());
+  void startScan();
+  void stopScan();
+  void connectToServer(BLEAdvertisedDevice* advertisedDevice);
+  void disconnectFromServer();
+  void sendShutterPress();
+  bool isConnected();
 
 private:
-    String _name;
-    Preferences* _pref;
-    bool _init = false;
-    bool _authenticated;
-    int _connected;
+  class MyClientCallback : public BLEClientCallbacks {
+    void onConnect(BLEClient* pClient) override;
+    void onDisconnect(BLEClient* pClient) override;
+  };
 
-    BLEDevice _device;
-    BLEClient* _client;
-    BLEAddress _cameraAddress;
+  class MyCharacteristicCallback : public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic* pCharacteristic) override;
+  };
 
-    BLERemoteCharacteristic* _outgoingCameraControl;
-    BLERemoteCharacteristic* _incomingCameraControl;
-    BLERemoteCharacteristic* _timecode;
-    BLERemoteCharacteristic* _cameraStatus;
-    BLERemoteCharacteristic* _deviceName;
+  MyAdvertisedDeviceCallbacks* advertisedDeviceCallbacks;
+  MyClientCallback clientCallbacks;
+  MyCharacteristicCallback characteristicCallbacks;
 
-    BLEScan* _bleScan;
-    BlueMagicCameraController* _cameraControl;
+  BLEScan* pBLEScan;
+  BLEClient* pClient;
+  BLECharacteristic* pCharacteristic;
 
-    bool connectToServer(const BLEAddress& address);
-    void setController();
-    void setState(CONNECTION_STATE state);
-    void setAuthentication(bool authenticated);
+  String targetDeviceName;
+  bool connected;
+
+  void (*cameraConnectedCallback)();
+  void (*cameraDisconnectedCallback)();
+  void (*shutterPressedCallback)();
 };
 
-#endif // BlueMagicCameraConnection_h
+#endif
